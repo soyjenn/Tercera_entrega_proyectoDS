@@ -1,0 +1,75 @@
+version: '3.8'
+services:
+  db_clientes:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpwd
+      MYSQL_DATABASE: clientes_db
+    volumes:
+      - clientes_data:/var/lib/mysql
+      - ./clientes-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "33061:3306"
+
+  db_productos:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpwd
+      MYSQL_DATABASE: productos_db
+    volumes:
+      - productos_data:/var/lib/mysql
+      - ./productos-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "33062:3306"
+
+  db_ventas:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpwd
+      MYSQL_DATABASE: ventas_db
+    volumes:
+      - ventas_data:/var/lib/mysql
+      - ./ventas-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "33063:3306"
+
+  clientes:
+    build: ./clientes-service
+    environment:
+      DB_HOST: db_clientes
+      DB_USER: root
+      DB_PASS: rootpwd
+      DB_NAME: clientes_db
+    depends_on: ['db_clientes']
+    ports:
+      - "4001:4001"
+    command: ["node", "server.js"]
+
+  productos:
+    build: ./productos-service
+    environment:
+      DB_HOST: db_productos
+      DB_USER: root
+      DB_PASS: rootpwd
+      DB_NAME: productos_db
+    depends_on: ['db_productos']
+    ports:
+      - "4002:4002"
+    command: ["node", "server.js"]
+
+  ventas:
+    build: ./ventas-service
+    environment:
+      DB_HOST: db_ventas
+      DB_USER: root
+      DB_PASS: rootpwd
+      DB_NAME: ventas_db
+    depends_on: ['db_ventas','clientes','productos']
+    ports:
+      - "4003:4003"
+    command: ["node", "server.js"]
+
+volumes:
+  clientes_data:
+  productos_data:
+  ventas_data:
